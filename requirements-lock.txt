@@ -1,0 +1,16 @@
+# Exact versions used to produce the results in results/ (Python 3.13, Linux x86_64, 2 CPU cores).
+# Small floating-point differences (typically in the 3rd-4th decimal) are expected on other
+# hardware (e.g., Apple Silicon) because tree-boosting libraries use platform-specific SIMD paths.
+numpy==2.5.3
+pandas==3.0.5
+scipy==1.18.1
+scikit-learn==1.9.1
+xgboost==3.4.1
+lightgbm==4.7.0
+catboost==1.2.10
+shap==0.54.1
+matplotlib==3.11.2
+joblib==1.6.0
+PyYAML==6.0.3
+ucimlrepo==0.0.7
+pytest==9.1.1

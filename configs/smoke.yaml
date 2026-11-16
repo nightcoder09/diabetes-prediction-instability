@@ -1,0 +1,52 @@
+# Fast configuration for checking that the whole pipeline runs (minutes, not hours).
+# Results from this file are NOT valid research results. Writes to separate folders.
+inherit: default.yaml
+
+paths:
+  experiments_dir: experiments_smoke
+  results_dir: results_smoke
+  figures_dir: figures_smoke
+
+data:
+  subsample_rows: 20000       # random stratified subset of the full dataset
+
+cv:
+  n_splits: 3
+
+tuning:
+  n_splits: 2
+  n_iter:
+    logreg: 2
+    decision_tree: 2
+    random_forest: 1
+    xgboost: 2
+    lightgbm: 2
+    catboost: 1
+
+evaluation:
+  n_bootstrap: 100
+
+explain:
+  n_background: 30
+  n_explain: 100
+
+multiplicity:
+  n_replicates: 3
+  n_explain: 50
+
+robustness:
+  mcar_rates: [0.0, 0.2]
+  n_mask_seeds: 1
+  bmi_noise_sd: [2.0]
+
+fairness:
+  n_bootstrap: 50
+
+selective:
+  n_bootstrap: 50
+
+remedy:
+  delta_auroc: 1.0            # every searched setting is a candidate (smoke test only)
+  n_subsamples: 2
+  n_seeds: 2
+  n_replicates: 2

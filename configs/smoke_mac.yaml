@@ -1,0 +1,13 @@
+# Fast end-to-end check on the Mac (a few minutes; results are NOT valid research results).
+# Re-uses the UCI download in data/raw/uci, so no internet is needed, and writes only to the
+# *_smoke folders, so the paper's results/ and figures/ are never touched.
+#     python scripts/run_all.py --config configs/smoke_mac.yaml
+inherit: smoke.yaml
+
+paths:
+  raw_dir: data/raw_smoke
+  processed_dir: data/processed_smoke
+
+data:
+  source: local
+  local_binary_csv: data/raw/uci/diabetes_binary_raw.csv

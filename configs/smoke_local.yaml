@@ -1,0 +1,7 @@
+# Smoke run (fast, NOT valid results) reading the local Kaggle files.
+inherit: smoke.yaml
+
+data:
+  source: local
+  local_binary_csv: data/raw/kaggle/diabetes_binary_health_indicators_BRFSS2015.csv
+  local_012_csv: data/raw/kaggle/diabetes_012_health_indicators_BRFSS2015.csv

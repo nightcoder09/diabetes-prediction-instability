@@ -1,0 +1,120 @@
+# =============================================================================
+# Default (full) experiment configuration.
+# Every number in the paper is produced with THIS file. Do not edit it after the
+# test set has been evaluated; create a new config file for any additional run.
+# =============================================================================
+project:
+  name: explainable-healthcare-ai
+  seed: 20261027            # master seed; all other seeds are derived from it
+
+paths:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  experiments_dir: experiments
+  results_dir: results
+  figures_dir: figures
+
+data:
+  # source: "uci"   -> official UCI ML Repository (id 891) via the ucimlrepo client,
+  #                    with a direct-CSV fallback.
+  # source: "local" -> a CSV you downloaded yourself (e.g. Kaggle release by A. Teboul).
+  source: uci
+  uci_id: 891
+  local_binary_csv: null      # path to diabetes_binary_health_indicators_BRFSS2015.csv
+  local_012_csv: null         # optional 3-class release; enables the prediabetes sensitivity analysis
+  expected_rows: 253680
+  target: Diabetes_binary     # 1 = self-reported diagnosed diabetes (see dataset report)
+
+split:
+  test_size: 0.20             # held-out test set, touched only by scripts >= 05
+  canonical_sort: true        # sort rows canonically before splitting -> split independent of file row order
+
+cv:
+  n_splits: 5                 # out-of-fold predictions on the development set
+
+tuning:
+  n_splits: 3
+  metric: roc_auc             # pre-specified primary discrimination metric
+  n_iter:
+    logreg: 8
+    decision_tree: 20
+    random_forest: 6
+    xgboost: 20
+    lightgbm: 20
+    catboost: 10
+
+models:
+  baselines: [logreg, decision_tree, random_forest, xgboost, lightgbm, catboost]
+  # Members must expose an additive log-odds score so that ensemble SHAP values are exact.
+  ensemble_members: [logreg, xgboost, lightgbm, catboost]
+  n_jobs: -1                  # -1 = all CPU cores
+
+ensemble:
+  nonnegative: true           # Breiman (1996) non-negativity constraint on stacking weights
+  meta_l2: 1.0e-4
+
+operating_point:
+  target_sensitivity: 0.80    # screening threshold, chosen on development-set OOF predictions only
+
+evaluation:
+  n_bootstrap: 2000
+  ci_level: 0.95
+  ece_bins: 15
+  dca_thresholds: [0.05, 0.50, 0.01]   # start, stop, step for decision-curve analysis
+
+explain:
+  n_background: 100           # background sample (development set) for interventional SHAP
+  n_explain: 1000             # test instances explained for global/local analyses
+  n_examples: 3               # individual explanations rendered as waterfall plots
+  perturb:
+    BMI: 1                    # +/- 1 kg/m^2
+    MentHlth: 1               # +/- 1 day
+    PhysHlth: 1               # +/- 1 day
+
+multiplicity:
+  n_replicates: 20            # independent re-trainings of the whole pipeline
+  subsample: 0.80             # fraction of the development set drawn (without replacement) per replicate
+  bag_size: 4                 # homogeneous bag of the best single model (same member count as the stack)
+  n_explain: 500              # test instances whose SHAP vectors are tracked across replicates
+  seed_only_replicates: 5     # extra re-trainings on the FULL development set, changing only random seeds
+
+robustness:
+  mcar_rates: [0.0, 0.05, 0.10, 0.20, 0.30, 0.40]
+  n_mask_seeds: 5
+  protected_from_masking: [Sex, Age]   # demographics assumed always recorded
+  scenarios:
+    income_missing: [Income]
+    ses_missing: [Income, Education]
+    lifestyle_missing: [Smoker, PhysActivity, Fruits, Veggies, HvyAlcoholConsump]
+    history_missing: [HighBP, HighChol, CholCheck, Stroke, HeartDiseaseorAttack]
+    bmi_missing: [BMI]
+    genhlth_missing: [GenHlth]
+  bmi_noise_sd: [1.0, 2.0, 3.0]
+  bmi_shift: -1.0             # systematic under-reporting of BMI
+  days_noise_max: 3           # uniform integer noise on MentHlth/PhysHlth
+  genhlth_flip_prob: 0.20     # probability of a +/-1 shift in self-rated health
+
+fairness:
+  n_bootstrap: 500
+  min_group_size: 500
+
+selective:
+  coverages: [1.0, 0.95, 0.90, 0.85, 0.80, 0.70]
+  n_bootstrap: 1000
+
+external:                     # temporal external validation (scripts/14_build_external.py, 15_external_validation.py)
+  dir: data/external
+  years: [2021, 2023]
+  n_bootstrap: 300            # resamples for external CIs (n > 230,000 per year, so intervals are already narrow)
+  subgroup_bootstrap: 100
+  n_replicates_scored: 10     # re-trainings (of the 20) that also score the external years
+  recal_fraction: 0.5         # half of each external year fits the recalibration, the other half evaluates it
+  n_explain: 1000
+
+remedy:                       # POST HOC remedy for arbitrariness (scripts/18_remedy.py; paper Sec. IV-H)
+  delta_auroc: 0.0005         # tuning-equivalent settings: tuning AUROC within this of the best setting
+  audit_fraction: 0.20        # fixed part of the development set on which decision stability is measured
+  n_subsamples: 8             # re-trainings per candidate setting during selection (80% of the rest)
+  auroc_guard: 0.001          # the chosen setting may lose at most this much audit-set AUROC
+  n_seeds: 5                  # seeds averaged (in log-odds) per gradient-boosting member
+  n_replicates: 10            # paired with the first 10 runs of the main re-training audit

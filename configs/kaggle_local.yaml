@@ -1,0 +1,11 @@
+# Same experiment as default.yaml, but reading the Kaggle release (A. Teboul, 2021) from local files
+# instead of downloading from UCI. Both releases contain the same 253,680 records; the canonical
+# content hash in data/processed/metadata.json lets you confirm this on your machine.
+# Download both CSVs from https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset
+# and place them in data/raw/kaggle/.
+inherit: default.yaml
+
+data:
+  source: local
+  local_binary_csv: data/raw/kaggle/diabetes_binary_health_indicators_BRFSS2015.csv
+  local_012_csv: data/raw/kaggle/diabetes_012_health_indicators_BRFSS2015.csv

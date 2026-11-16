@@ -1,0 +1,15 @@
+# Independent re-run of the complete study on a second machine (the author's MacBook).
+# Identical settings to default.yaml; the data are downloaded again from the UCI repository and all
+# outputs go to separate *_repro_mac folders, so the paper's results are never overwritten.
+# Compare with: python scripts/16_compare_runs.py --a configs/default.yaml --b configs/repro_mac.yaml
+inherit: default.yaml
+
+paths:
+  raw_dir: data/raw/uci
+  processed_dir: data/processed_repro_mac
+  experiments_dir: experiments_repro_mac
+  results_dir: results_repro_mac
+  figures_dir: figures_repro_mac
+
+data:
+  source: uci
